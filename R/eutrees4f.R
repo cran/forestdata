@@ -18,10 +18,10 @@ get_eutrees4f_tbl <- function() {
   ## 2.1. List files in a folder
   eutrees_files <- list.files(path = stringr::str_glue("{dir_unzip}/ens_clim/bin"))
   ## 2.2. Extract species
-  eutrees_trees <- eutrees_files %>%
-    stringr::str_split("_") %>%
-    purrr::map(\(x) paste(x[1:2], collapse = " ")) %>%
-    as.character() %>%
+  eutrees_trees <- eutrees_files |>
+    stringr::str_split("_") |>
+    purrr::map(\(x) paste(x[1:2], collapse = " ")) |>
+    as.character() |>
     unique()
   ## 2.3. Return results
   return(eutrees_trees)
@@ -30,7 +30,7 @@ get_eutrees4f_tbl <- function() {
 
 # fd_forest_eutrees4f
 
-#' Download data from EU-Trees4F Database
+#' EU-Trees4F Database
 #'
 #' Download data for tree species distribution in Europe for current (2005)
 #' distribution, and future distribution (2035, 2065, 2095).
@@ -38,21 +38,20 @@ get_eutrees4f_tbl <- function() {
 #' Data may be freely used for research, study, or teaching, but be cited
 #' appropriately (see references below).
 #'
-#' @param species A character vector of length 1 with the latin name of the
+#' @param species a character vector of length 1 with the Latin name of the
 #'                tree species (genus and species)
-#' @param model A character vector of length 1 with the name of the ensemble
+#' @param model a character vector of length 1 with the name of the ensemble
 #'              projection. One of 'clim' or 'sdms' (see details)
-#' @param period A numeric or character vector of length 1 with the center of
+#' @param period a numeric or character vector of length 1 with the center of
 #'               the 30-year time period used for the model. One of '2005',
 #'               '2035', '2065', '2095', or 'all' (see details)
-#' @param scenario A character vector of length 1 with the climate change
+#' @param scenario a character vector of length 1 with the climate change
 #'                scenario used. One of 'rcp45' or 'rcp85' (see details)
-#' @param type A character vector of length 1 with the type of output layer.
+#' @param type a character vector of length 1 with the type of output layer.
 #'             One of 'bin', 'prob' or 'std' (see details)
-#' @param distrib A character vector of length 1 with the type of distribution.
+#' @param distrib a character vector of length 1 with the type of distribution.
 #'                One of 'nat', 'pot', 'disp' or 'disp_lu' (see details)
-#' @param quiet If \code{TRUE} (the default), suppress status messages, and
-#'              the progress bar
+#' @param quiet if \code{TRUE}, suppress any message or progress bar
 #'
 #' @return A single-band or multi-band \code{SpatRaster}
 #' @export
@@ -118,7 +117,7 @@ get_eutrees4f_tbl <- function() {
 #' - disp_lu: natural dispersal model clipped by forest areas. Only available
 #' with \code{type = 'bin'}
 #'
-#' @seealso [metadata_forestdata] for a list of possible species
+#' @seealso \link{metadata_forestdata} for a list of possible species
 #'
 #'
 #' @references Mauri, Achille; Cescatti, Alessandro; GIRARDELLO, MARCO; Strona,
@@ -137,7 +136,7 @@ fd_forest_eutrees4f <- function(species,
                                 scenario = "rcp45",
                                 type     = "bin",
                                 distrib  = "pot",
-                                quiet    = TRUE) {
+                                quiet    = FALSE) {
 
   # 0. Errors if...
   if (model == "clim" & type == "std") stop("There's no std type for model clim.")
@@ -145,6 +144,7 @@ fd_forest_eutrees4f <- function(species,
   if (type == "std" & distrib != "pot") stop("You must use distrib = 'pot' for type = 'std'.")
   if (type == "std" & period == 2005) stop("There's no current map (2005) for type = 'std'. Please, choose 2035, 2065 or 2095.")
   if (distrib %in% c("nat", "disp", "dip_lu") & type != "bin") stop("The distribution chosen is only available in binary output. Please use `type = 'bin'`")
+  if (distrib == "nat" & period != 2005) stop("Natural distribution is only available for 2005")
 
   # 1. Download file
   ## 1.1. Url and file destination
@@ -186,7 +186,7 @@ fd_forest_eutrees4f <- function(species,
       path       = stringr::str_glue("{dir_unzip}/ens_{model}/{type}"),
       pattern    = x,
       full.names = TRUE
-    )) %>% as.character()
+    )) |> as.character()
     ## Read into R and rename
     rst <- terra::rast(rast.path)
     names(rst) <- c("cur2005", "fut2035", "fut2065", "fut2095")
@@ -199,8 +199,8 @@ fd_forest_eutrees4f <- function(species,
     rst <- terra::rast(rast.path)
   }
 
-
   # 3. Return the raster
+  if (!quiet) message(crayon::cyan("Cite this dataset using <https://doi.org/10.6084/m9.figshare.c.5525688.v2>"))
   return(rst)
 
 }

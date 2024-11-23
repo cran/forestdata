@@ -12,9 +12,9 @@
 #'
 #' @importFrom stringi stri_trans_general
 fdi_fix_names <- function(name) {
-  name %>%
-    stringi::stri_trans_general("Latin-ASCII") %>%
-    stringr::str_to_title() %>%
+  name |>
+    stringi::stri_trans_general("Latin-ASCII") |>
+    stringr::str_to_title() |>
     stringr::str_trim()
 }
 
@@ -81,7 +81,7 @@ fdi_download_unzip <- function(download_url, dir_unzip, dir_zip,
 #' @return Unzipped file
 #' @keywords internal
 fdi_download_7zip <- function(download_url, dir_unzip, dir_zip,
-                               timeout = 5000, quiet = TRUE) {
+                               timeout = 10000, quiet = TRUE) {
 
   # 1. Download file
   ## 1.1. Url and file destination
@@ -90,6 +90,10 @@ fdi_download_7zip <- function(download_url, dir_unzip, dir_zip,
   dir_zip      <- dir_zip
   ## 1.2. Download to tempdir
   if (!file.exists(dir_unzip)) {
+    ## Check for user's timeout
+    old_timeout <- getOption("timeout")
+    on.exit(options(timeout = old_timeout))
+    ## Download file
     options(timeout = max(timeout, getOption("timeout")))
     download.file(
       url      = download_url,
@@ -113,15 +117,18 @@ fdi_download_7zip <- function(download_url, dir_unzip, dir_zip,
 #'
 #' @return A \code{SpatRaster}
 #' @keywords internal
-get_combined_raster <- function(year_i, url_table) {
+get_combined_raster <- function(year_i, url_table, area, crop, ...) {
 
   ## Filter urls within the year
-  filtered_url <- dplyr::filter(url_table, year == year_i) %>%
-    dplyr::pull(url) %>%
+  filtered_url <- dplyr::filter(url_table, year == year_i) |>
+    dplyr::pull(url) |>
     as.character()
 
   ## Download all the rasters
   rast_lst <- lapply(filtered_url, terra::rast)
+
+  ## Crop the rasters if required
+  if (crop) rast_lst <- purrr::map(rast_lst, \(x) terra::crop(x, area, ...))
 
   ## Combine all the raster
   if (length(rast_lst) == 1) {
@@ -143,8 +150,8 @@ get_combined_raster <- function(year_i, url_table) {
 get_combined_raster_2l <- function(year_i, layer_i, url_table) {
 
   ## Filter urls within the year
-  filtered_url <- dplyr::filter(url_table, year == year_i, layer_shrt == layer_i) %>%
-    dplyr::pull(url) %>%
+  filtered_url <- dplyr::filter(url_table, year == year_i, layer_shrt == layer_i) |>
+    dplyr::pull(url) |>
     as.character()
 
   ## Download all the rasters
@@ -168,13 +175,13 @@ get_combined_raster_2l <- function(year_i, layer_i, url_table) {
 #'
 #' @return A \code{SpatRaster}
 #' @keywords internal
-fdi_download_raster <- function(url, start = NULL, end = NULL, timeout = 5000) {
+fdi_download_raster <- function(url, start = NULL, end = NULL, timeout = 5000, quiet = FALSE) {
 
   ## 1. File name
   if (is.null(start) & is.null(end)) {
     url_path <- stringr::str_glue("{tempdir()}/{basename(url)}")
   } else {
-    url_path <- stringr::str_glue("{tempdir()}/{basename(url) %>% stringr::str_sub(start, end)}")
+    url_path <- stringr::str_glue("{tempdir()}/{basename(url) |> stringr::str_sub(start, end)}")
   }
 
 
@@ -188,7 +195,8 @@ fdi_download_raster <- function(url, start = NULL, end = NULL, timeout = 5000) {
     download.file(
       url      = url,
       destfile = url_path,
-      mode     = "wb"
+      mode     = "wb",
+      quiet    = quiet
     )
   }
   ## Read raster into R

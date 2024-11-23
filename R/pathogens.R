@@ -5,27 +5,34 @@
 #' Download the Database of European Forest Insect and Disease Disturbances.
 #'
 #' Data may be freely used for research, study, or teaching, but be cited
-#' appropiately (see references below).
+#' appropriately (see references below).
 #'
-#' @param agent A character vector with the desired forest insect(s) and/or
-#'              disease(s). The default '\code{all}' retrieves every agent
-#' @param host A character vector with the desired host tree(s) species. The
-#'              default '\code{all}' retrieves every tree
-#' @param symptoms A character vector with the desired symptom(s). The default
-#'              '\code{all}' retrieves every symptom
-#' @param country A character vector with the desired country(ies). The default
-#'              '\code{all}' retrieves every country
-#' @param geometry A string with '\code{polygon}' to retrieve polygon data, or
-#'               '\code{point}' to retrieve point data
+#' @param agent a character vector with the desired forest insect(s) and/or
+#' disease(s). The default '\code{all}' retrieves every agent
+#' @param host a character vector with the desired host tree(s) species. The
+#' default '\code{all}' retrieves every tree
+#' @param symptoms a character vector with the desired symptom(s). The default
+#' '\code{all}' retrieves every symptom
+#' @param country a character vector with the desired country(ies). The default
+#' '\code{all}' retrieves every country
+#' @param geometry a string with '\code{polygon}' to retrieve polygon data, or
+#' '\code{point}' to retrieve point data
+#' @param quiet if \code{TRUE} (the default), suppress status messages, and
+#' the progress bar
 #'
 #' @return \code{sf} object with \code{MULTIPOLYGON} or \code{POINT} geometry
+#'
 #' @importFrom stats na.omit
 #' @export
 #'
 #' @details
+#'
 #' This function will download the DEFID2 database to the temporary directory
 #' once per session. After it's downloaded, the queries to the database are
 #' faster than the first time.
+#'
+#' Note that 99.6% of the observations correspond to _Picea abies_.
+#' Also, 99.3% of the observations are in Czechia.
 #'
 #' The data comprises over 650,000 georeferenced records, which can be retrieved
 #' as points or polygons, representing insects and diseases that occurred between
@@ -56,7 +63,8 @@ fd_pathogens_defid2 <- function(agent = "all",
                                 host = "all",
                                 symptoms = "all",
                                 country = "all",
-                                geometry = "polygon") {
+                                geometry = "polygon",
+                                quiet    = TRUE) {
 
   # 1. Download file
   ## 1.1. File url
@@ -72,6 +80,7 @@ fd_pathogens_defid2 <- function(agent = "all",
     download.file(
       url      = url,
       destfile = stringr::str_glue("{tempdir()}/{basename(url)}"),
+      quiet    = quiet,
       mode     = "wb"
     )
   }
@@ -109,7 +118,7 @@ fd_pathogens_defid2 <- function(agent = "all",
   query_df <- data.frame(
     clause = c("agent", "host", "country", "symptoms"),
     query  = c(agent_qr, host_qr, country_qr, symptoms_qr)
-  ) %>% na.omit()
+  ) |> na.omit()
   ### Build final clauses query
   tmp.query <- ""
   if (nrow(query_df) == 1) {

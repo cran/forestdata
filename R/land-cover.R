@@ -1,5 +1,5 @@
 
-## GLOBAL LAND COVER DATA ----------
+## GLOBAL LAND COVER  COPERNICUS ----------
 
 # get_glc_tbl
 
@@ -9,7 +9,7 @@
 #'
 #' @return A \code{tibble}
 #' @keywords internal
-#' @references <https://lcviewer.vito.be/download>
+#' @references <https://land.copernicus.eu/en/products/global-dynamic-land-cover>
 get_glc_tbl <- function() {
 
   # 1. Vector with possible longitudes
@@ -38,48 +38,46 @@ get_glc_tbl <- function() {
     layers    = layers
   )
   # 6. Prepare grid and urls
-  grid_urls <- grid_urls %>%
-    tibble::as_tibble() %>%
+  grid_urls <- grid_urls |>
+    tibble::as_tibble() |>
     dplyr::mutate(
-      year = stringr::str_extract(years_url, "([0-9]{4})") %>% as.numeric()
-    ) %>%
+      year = stringr::str_extract(years_url, "([0-9]{4})") |> as.numeric()
+    ) |>
     dplyr::mutate(
       lonlat     = paste0(lon_code, lat_code),
-      lon        = stringr::str_sub(lon_code, 2, 4) %>% as.numeric(),
+      lon        = stringr::str_sub(lon_code, 2, 4) |> as.numeric(),
       lon        = ifelse(stringr::str_detect(lon_code, "E([0-9]{3})"), lon, -lon),
-      lat        = stringr::str_sub(lat_code, 2, 3) %>% as.numeric(),
+      lat        = stringr::str_sub(lat_code, 2, 3) |> as.numeric(),
       lat        = ifelse(stringr::str_detect(lat_code, "N([0-9]{2})"), lat, -lat),
       url        = stringr::str_glue("https://s3-eu-west-1.amazonaws.com/vito.landcover.global/v3.0.1/{year}/{lonlat}/{lonlat}_PROBAV_LC100_global_v3.0.1_{years_url}_{layers}_EPSG-4326.tif"),
       layer_shrt = stringr::str_split(layers, "-"),
-      layer_shrt = purrr::map_chr(layer_shrt, 1) %>% stringr::str_to_lower()
+      layer_shrt = purrr::map_chr(layer_shrt, 1) |> stringr::str_to_lower()
       )
   return(grid_urls)
 }
 
 
-# fd_landcover_copernicus ----
+# fd_landcover_copernicus
 
-#' Download data from the Global Land Cover
+#' Global Land Cover
 #'
-#' Download a SpatRaster from the Global Land Cover from the Copernicus Global
+#' Download a \code{SpatRaster} from the Global Land Cover from the Copernicus Global
 #' Land Service.
 #'
-#'
-#' @param x An \code{sf} or \code{SpatVector} object. It will retrieve the
+#' @param x an \code{sf} or \code{SpatVector} object. It will retrieve the
 #'          necessary tiles to cover the area (if \code{lat} and \code{lon} are
 #'          specified, this argument is ignored)
-#' @param lat A number specifying the latitude of the area where we want the tile
-#' @param lon A number specifying the longitude of the area where we want the tile
-#' @param year Year of the forest extent data. One of 2015:2019 or 'all'
-#' @param layer A character vector of the layer(s) to use from the Global
+#' @param lat a number specifying the latitude of the area where we want the tile
+#' @param lon a number specifying the longitude of the area where we want the tile
+#' @param year year of the land cover data. One of 2015:2019 or 'all'
+#' @param layer a character vector of the layer(s) to use from the Global
 #'              Land Cover. See details
-#' @param crop When \code{x} is specified, whether to crop the tiles(s) to the
-#'             object
-#' @param ... additional arguments passed to the `terra::crop()` function
+#' @param crop when \code{x} is specified, whether to crop the tile(s) to the object
+#' @param ... additional arguments passed to the \link[terra]{crop} function
 #'
 #' @return \code{SpatRaster} object
 #' @export
-#' @include utils_notExported.R
+#' @include utils-not-exported.R
 #'
 #'
 #' @references Buchhorn, M.; Smets, B.; Bertels, L.; De Roo, B.; Lesiv, M.;
@@ -125,15 +123,16 @@ get_glc_tbl <- function() {
 #' \donttest{
 #'  # Get tile for Galicia (Spain) and year 2019
 #'  galicia_forest_extent <- fd_landcover_copernicus(
-#'  lat  = 42.7,
-#'  lon  = -7.8,
-#'  year = 2019)
+#'   lat  = 42.7,
+#'   lon  = -7.8,
+#'   year = 2019
+#'  )
 #'  # Get forest and discrete classification tiles for all years
 #'  galicia_forest_extent <- fd_landcover_copernicus(
-#'  lat  = 42.7,
-#'  lon  = -7.8,
-#'  year = "all",
-#'  layer = c("forest", "discrete")
+#'   lat  = 42.7,
+#'   lon  = -7.8,
+#'   year = "all",
+#'   layer = c("forest", "discrete")
 #'  )
 #'  }
 
@@ -161,7 +160,7 @@ fd_landcover_copernicus <- function(x,
     new_lat <- ceiling(lat / 20) * 20
     new_lon <- floor(lon / 20) * 20
     ## 1.2. Filter file
-    tile_tbl <- glc_tbl %>%
+    tile_tbl <- glc_tbl |>
       dplyr::filter(lat == new_lat & lon == new_lon)
   } else {
     ## 1.3. Get tiles for x
@@ -172,7 +171,7 @@ fd_landcover_copernicus <- function(x,
     new_lon <- floor(xbbox[c(1,3)]/20) * 20
     new_lat <- ceiling(xbbox[c(2,4)]/20) * 20
     ### 1.3.3. Filter file
-    tile_tbl <- glc_tbl %>%
+    tile_tbl <- glc_tbl |>
       dplyr::filter(lat %in% new_lat & lon %in% new_lon)
   }
 
@@ -197,7 +196,7 @@ fd_landcover_copernicus <- function(x,
   names(glad_sr) <- ids$layer_names
 
   # 4. Manage crop
-  if (crop) glad_sr <- terra::crop(glad_sr, x, ...)
+  if (crop) glad_sr <- terra::crop(glad_sr, xwgs84, ...)
 
   # 5. Return
   return(glad_sr)
@@ -206,5 +205,113 @@ fd_landcover_copernicus <- function(x,
 
 
 
+## LAND COVER EXPLORER Esri ------------
 
+
+## get_landcoverexplorer_tbl
+
+#' (Internal) Get codes table of Land Cover Explorer
+#'
+#' Get a table with the Land Cover explorer codes and urls
+#'
+#' @return A \code{tibble}
+#' @keywords internal
+#' @include utils-not-exported.R
+get_landcoverexplorer_tbl <- function() {
+
+  # 1. Possible options
+  years   <- 2017:2023
+  letters <- LETTERS[-c(1, 2, 9, 15, 25:26)]
+  nmbrs   <- 1:60
+  nmbrs   <- sprintf("%02d", nmbrs)
+
+  # 2. Table with options
+  expand.grid(Year = years, Number = nmbrs, Letter = letters) |>
+    dplyr::mutate(download_url =
+                    stringr::str_glue("https://lulctimeseries.blob.core.windows.net/lulctimeseriesv003/lc{Year}/{Number}{Letter}_{Year}0101-{Year + 1}0101.tif")
+    )
+}
+
+
+## fd_landcover_esri
+
+#' Download data from the ESRI Land Cover Explorer
+#'
+#' Download an UTM tile of the ESRI Land Cover Explorer for a specified year
+#'
+#' @param utm_code a character string of length 1 with an UTM code (e.g. "29N")
+#' @param year an integer or vector of integers corresponding to the base year
+#'             of the land cover tile. The option \code{year = 'all'} downloads all
+#'             the available images (2017:2023)
+#' @param quiet if \code{TRUE} (the default), suppress status messages, and
+#'              the progress bar
+#'
+#' @return A \code{SpatRaster}
+#' @export
+#'
+#'
+#' @references \url{https://livingatlas.arcgis.com/en/home/}
+#'
+#' @examples
+#' \donttest{
+#' # Download Land Cover for UTM tile 29N year 2023
+#' lc <- fd_landcover_esri("29N", year = 2023)
+#'
+#' # Download Land Cover for UTM time 29N for all years
+#' lc <- fd_landcover_esri("29N", year = "all")
+#' }
+fd_landcover_esri <- function(utm_code,
+                              year,
+                              quiet = TRUE) {
+
+  # 0. Handle year error
+  if (!(year %in% seq(2017, 2023, 1)) & year != "all") stop("The indicated year is not valid. Please, use a year between 2017 and 2022, or the 'all' function to retrieve all.")
+
+  # 1. Get number and letter
+  nmbr <- stringr::str_sub(utm_code, 1, 2)
+  lttr <- stringr::str_sub(utm_code, 3, 3)
+
+  # 2. Get url
+  if (year == "all") {
+    download_url <- landcover_explorer_tbl |>
+      dplyr::filter(Number == nmbr & Letter == lttr) |>
+      dplyr::pull(download_url)
+  } else {
+    download_url <- landcover_explorer_tbl |>
+      dplyr::filter(Year %in% year & Number == nmbr & Letter == lttr) |>
+      dplyr::pull(download_url)
+  }
+
+  # 3. Handle error
+  if (length(download_url) == 0) stop("The UTM Code doesn't exist, is incorrect or fell into the sea. Please, use two numbers and one letter (e.g. 05T)")
+
+  # 4. Download
+  ## 4.1. Tiff file
+  tif_path <- paste0(tempdir(), "/", basename(download_url))
+  ## Check for user's timeout
+  old_timeout <- getOption("timeout")
+  on.exit(options(timeout = old_timeout))
+  ## Download file
+  options(timeout = 10000)
+  purrr::map2(
+    download_url,
+    tif_path,
+    \(x, y) download.file(
+      url      = x,
+      destfile = y,
+      mode     = "wb",
+      quiet    = quiet
+    )
+  )
+
+  # 5. Read into R
+  ## 5.1. Read file
+  lc_sr <- terra::rast(tif_path)
+  ## 5.2. Layer names
+  lc_names <- stringr::str_sub(basename(download_url), 1, 8)
+  names(lc_sr) <- lc_names
+  ## 5.3. Return object
+  return(lc_sr)
+
+}
 

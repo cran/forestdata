@@ -2,7 +2,7 @@
 % Please edit documentation in R/GLAD.R
 \name{fd_forest_extent_glad}
 \alias{fd_forest_extent_glad}
-\title{Download Forest Extent}
+\title{Forest Extent}
 \usage{
 fd_forest_extent_glad(
   x = NULL,
@@ -10,30 +10,34 @@ fd_forest_extent_glad(
   lat = NULL,
   year = 2020,
   crop = FALSE,
+  quiet = FALSE,
   ...
 )
 }
 \arguments{
-\item{x}{An \code{sf} or \code{SpatVector} object. It will retrieve the
+\item{x}{a \code{sf} or \code{SpatVector} object. It will retrieve the
 necessary tiles to cover the area (if \code{lat} and \code{lon} are
 specified, this argument is ignored)}
 
-\item{lon}{A number specifying the longitude of the area where we want the tile}
+\item{lon}{a number specifying the longitude of the area where we want the tile}
 
-\item{lat}{A number specifying the latitude of the area where we want the tile}
+\item{lat}{a number specifying the latitude of the area where we want the tile}
 
-\item{year}{Year of the forest extent data. One of 2000, 2020 or 'all'}
+\item{year}{year of the forest extent data. One of 2000, 2020 or 'all'}
 
-\item{crop}{When \code{x} is specified, whether to crop the tiles(s) to the
-object}
+\item{crop}{when \code{x} is specified, whether to crop the tiles(s) to the object}
 
-\item{...}{additional arguments passed to the `terra::crop()` function}
+\item{quiet}{if \code{TRUE}, suppress any message or progress bar}
+
+\item{...}{additional arguments passed to the \link[terra]{crop} function}
 }
 \value{
 \code{SpatRaster} object
 }
 \description{
-Download the Forest Extent raster from the Global Land Analysis & Discovery by
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
+This function is deprecated in favour of \link{fd_forest_glad}. Download the Forest
+Extent raster from the Global Land Analysis & Discovery by
 using a vectorial object or a pair of coordinates (latitude, longitude).
 }
 \details{
@@ -52,10 +56,9 @@ big extensions the function might take some time to retrieve the data.
 }
 }
 \references{
-P. Potapov, X. Li, A. Hernandez-Serna, A. Tyukavina, M.C. Hansen,
-            A. Kommareddy, A. Pickens, S. Turubanova, H. Tang, C.E. Silva,
-            J. Armston, R. Dubayah, J. B. Blair, M. Hofton (2020) Mapping
-            and monitoring global forest canopy height through integration
-            of GEDI and Landsat data. Remote Sensing of Environment,
-            112165. https://doi.org/10.1016/j.rse.2020.112165
+Potapov P., Hansen M.C., Pickens A., Hernandez-Serna A., Tyukavina A.,
+Turubanova S., Zalles V., Li X., Khan A., Stolle F., Harris N., Song X.-P.,
+Baggett A., Kommareddy I., Kommareddy A. (2022) The global 2000-2020 land cover
+and land use change dataset derived from the Landsat archive: first results.
+Frontiers in Remote Sensing \doi{10.3389/frsen.2022.856903}
 }

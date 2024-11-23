@@ -1,9 +1,9 @@
 
-## Spain Inventario Forestal Nacional ---------------------------
+## SPAIN ---------------------------
 
 
 
-## get_spain_ifn_metadata_tbl ----
+## get_spain_ifn_metadata_tbl
 
 #' (Internal) Get table with URLs of the IFN metadata
 #'
@@ -26,12 +26,12 @@ get_spain_ifn_metadata_tbl <- function() {
     )
   ) |>
     dplyr::mutate(
-      filename = paste0("metadata_ifn", ifn, "_", database, c(".xls", ".xls", rep(".pdf", 4)))
+      filename = paste0("metadata_ifn", ifnx, "_", databasex, c(".xls", ".xls", rep(".pdf", 4)))
     )
 
 }
 
-## get_spain_ifn2_tbl ----
+## get_spain_ifn2_tbl
 
 #' (Internal) Get table with Provinces and Urls for the Spanish IFN2
 #'
@@ -39,7 +39,7 @@ get_spain_ifn_metadata_tbl <- function() {
 #'
 #' @return A \code{tibble}
 #' @keywords internal
-#' @include utils_notExported.R
+#' @include utils-not-exported.R
 get_spain_ifn2_tbl <- function() {
 
   # 1. Read urls (there is one per each 25 provinces)
@@ -109,7 +109,7 @@ get_spain_ifn2_tbl <- function() {
 
 
 
-## get_spain_ifn3_tbl ----
+## get_spain_ifn3_tbl
 
 #' (Internal) Get table with Provinces and Urls for the Spanish IFN3
 #'
@@ -117,7 +117,7 @@ get_spain_ifn2_tbl <- function() {
 #'
 #' @return A \code{tibble}
 #' @keywords internal
-#' @include utils_notExported.R
+#' @include utils-not-exported.R
 get_spain_ifn3_tbl <- function() {
 
   # 1. Read urls (there is one per each 25 provinces)
@@ -162,7 +162,7 @@ get_spain_ifn3_tbl <- function() {
 
 }
 
-## get_spain_ifn4_tbl ----
+## get_spain_ifn4_tbl
 
 #' (Internal) Get table Provinces and Urls
 #'
@@ -170,7 +170,7 @@ get_spain_ifn3_tbl <- function() {
 #'
 #' @return A \code{tibble}
 #' @keywords internal
-#' @include utils_notExported.R
+#' @include utils-not-exported.R
 get_spain_ifn4_tbl <- function() {
   # 1. Read url
   url <- "https://www.miteco.gob.es/es/biodiversidad/temas/inventarios-nacionales/inventario-forestal-nacional/cuarto_inventario.html"
@@ -204,56 +204,61 @@ get_spain_ifn4_tbl <- function() {
 
 
 
-#' Download Spanish Forest Inventory
+#' Spanish Forest Inventory
 #'
 #' Download the tables and SIG data from the Spanish Forest Inventory
 #'
-#' @param province A character string of length 1 with the name of a
+#' @param province a character string of length 1 with the name of a
 #'                 Spanish province
-#' @param ifn Number of Spanish Forest Inventory (from 2 to 4)
-#' @param database The name of the database (either 'field' or 'gis')
-#' @param path_metadata A character string of length 1 with the path to store the
+#' @param ifn number of Spanish Forest Inventory (from 2 to 4)
+#' @param database the name of the database (either 'field' or 'gis')
+#' @param path_metadata a character string of length 1 with the path to store the
 #' metadata of the selected database. The default \code{path_metadata = NULL}
 #' does not download the metadata
-#' @param quiet If \code{TRUE} (the default), suppress status messages, and
-#'              the progress bar
+#' @param quiet if \code{TRUE}, suppress any message or progress bar
 #'
 #' @return A \code{list} with the tables
 #' @export
 #'
-#' @seealso [metadata_forestdata] for a list of possible species
+#' @seealso \link{metadata_forestdata} for a list of possible species
 #'
 #' @details
 #' The IFN2 doesn't have 'gis' data for Asturias, Cantabria and Navarra.
+#'
+#' In the future a function to process the data will be added.
 #'
 #' @references \url{https://www.miteco.gob.es/es/biodiversidad/temas/inventarios-nacionales/inventario-forestal-nacional.html}
 #'
 #' @examples
 #' \donttest{
-#' # Download MFE50 for the province of Lugo
-#' lugo_ifn4_lst <- fd_inventory_spain("Lugo")
+#' # Download MFE50 for Canary Islands
+#' canarias_ifn4_lst <- fd_inventory_spain("Canarias")
 #'
-#' lugo_ifn3_gis_lst <- fd_inventory_spain("Lugo", ifn = 3, database = "gis")
+#' cantabria_ifn3_gis_lst <- fd_inventory_spain("cantabria", ifn = 3, database = "gis")
 #' }
 fd_inventory_spain <- function(province,
-                               ifn = 4,
-                               database = "field",
+                               ifn           = 4,
+                               database      = "field",
                                path_metadata = NULL,
-                               quiet = TRUE) {
-
+                               quiet         = FALSE) {
+  # 0. Handle errors
+  if (!requireNamespace("RODBC", quietly = TRUE)) stop("Package `RODBC` is required to access the inventory data. Please, install it.")
+  if (!"Microsoft Access Driver (*.mdb, *.accdb)" %in% odbc::odbcListDrivers()$name) {
+    stop("<Microsoft Access Driver (*.mdb, *.accdb)> is not available. Please, install it to use this function.")
+  }
   # 1. Filter province
   ## 1.1. Fix province
-  province_fix <- province %>%
+  province_fix <- province |>
     fdi_fix_names()
   ## 1.2. Filter selected province
   ifn_data <- switch(as.character(ifn),
-    "2" = ifn2_tbl,
-    "3" = ifn3_tbl,
-    "4" = ifn4_tbl,
-    stop("Invalid IFN number. Please, choose a number from 1 to 4")
+                     "2" = ifn2_tbl,
+                     "3" = ifn3_tbl,
+                     "4" = ifn4_tbl,
+                     stop("Invalid IFN number. Please, choose a number from 1 to 4")
   )
 
-  selected_province <- ifn_data %>%
+  selected_province <- ifn_data |>
     dplyr::filter(stringr::str_detect(fdi_fix_names(province), province_fix))
 
   # 2. Download data
@@ -262,7 +267,15 @@ fd_inventory_spain <- function(province,
   dir_zip      <- stringr::str_glue("{tempdir()}/{basename(download_url)}")
   dir_unzip    <- stringr::str_remove(dir_zip, ".zip")
   ## 2.1. Download and unzip
-  fdi_download_unzip(download_url, dir_unzip, dir_zip, quiet = quiet)
+  tryCatch({
+    # Call the original function
+    fdi_download_unzip(download_url, dir_unzip, dir_zip, quiet = quiet)
+
+  }, error = function(e) {
+    # Handle any errors by printing a custom message
+    message("Error. The files you are trying to download aren't available now.")
+  }
+  )
 
   # 3. Download metadata?
   if (!is.null(path_metadata)) {
@@ -271,12 +284,15 @@ fd_inventory_spain <- function(province,
         ifnx      == ifn,
         databasex == database
       )
-    download.file(
-      metadata_file$url,
-      destfile = metadata_file$filename,
-      mode     = "wb",
-      quiet    = quiet
-    )
+    ## download only if it doesn't exist
+    if (!file.exists(metadata_file$filename)) {
+      download.file(
+        metadata_file$url,
+        destfile = paste0(path_metadata, "/", metadata_file$filename),
+        mode     = "wb",
+        quiet    = quiet
+      )
+    }
   }
 
   # 4. Read data
@@ -303,31 +319,89 @@ fd_inventory_spain <- function(province,
     }
   } else {
     ## 4.1. File name
-    filename <- list.files(dir_unzip, full.names = TRUE)
+    filename <- list.files(dir_unzip, full.names = TRUE, pattern = "\\.accdb$")
     ## 4.2. Connect to DB
     conn <- RODBC::odbcConnectAccess2007(filename)
+    on.exit(RODBC::odbcClose(conn))
     ## 4.3. Table names
     tables_vec <- RODBC::sqlTables(conn) |>
       dplyr::filter(TABLE_TYPE != "SYSTEM TABLE") |>
       dplyr::pull(TABLE_NAME)
-    ## 4.4. Read data into a list
+    ## 4.5. Read data into a list
     data_lst <- purrr::map(
       .x = tables_vec,
       .f = \(x) RODBC::sqlFetch(conn, x) |>
         tibble::as_tibble()
     )
-    ## 4.5. Disconnect from DB
-    RODBC::odbcClose(conn)
     ## 4.6. Rename list
     names(data_lst) <- tables_vec
     ## 4.7. Convert IFN4 PCDatosMap to projected SF (only in field database)
     ## -> IFN3 doesn't have huso column
-    if (ifn == 4 & database == "field") {
-      data_lst$PCDatosMap_sf <- sf::st_as_sf(
-        x      = data_lst$PCDatosMap,
-        coords = c("CoorX", "CoorY"),
-        crs    = paste0("EPSG:", 258, data_lst$PCDatosMap$Huso[1])
-      )
+    if (database == "field") {
+      if (ifn == 4) {
+        ## get datum code based on province/ccaa
+        datum <- dplyr::case_when(
+          province_fix %in% c("Navarra", "Lugo", "A Coruna", "Lugo", "Pontevedra",
+                          "Ourense", "Asturias", "Cantabria", "Murcia", "Baleares",
+                          "Pais Vasco", "La Rioja", "Madrid", "Cataluna") ~ 230,
+          province_fix %in% c("Canarias") ~ 326,
+          .default = 258
+        )
+        ## convert to spatial
+        data_lst$PCDatosMap_sf <- sf::st_as_sf(
+          x      = data_lst$PCDatosMap,
+          coords = c("CoorX", "CoorY"),
+          crs    = paste0("EPSG:", datum, data_lst$PCDatosMap$Huso[1])
+        )
+
+        ## IFN 3 - SF column
+      } else {
+        data_lst$PCDatosMap <- data_lst$PCDatosMap |>
+          dplyr::mutate(
+            Huso = dplyr::case_when(
+              ## Huso 29
+              province_fix %in% c("Lugo", "Ourense", "A Coruna", "Pontevedra") ~ 29,
+              province_fix %in% c("Sevilla", "Badajoz", "Caceres", "Salamanca", "Cadiz",
+                                  "Zamora", "Leon", "Asturias", "Huelva") & CoorX > 5e5 ~ 29,
+              ## Huso 28
+              province_fix %in% c("Santa Cruz De Tenerife", "Las Palmas") ~ 28,
+              ## Huso 31
+              province_fix %in% c("Islas Baleares", "Barcelona", "Girona", "Lleida", "Tarragona") ~ 31,
+              province_fix %in% c("Castellon", "Huesca", "Zaragoza",
+                                  "Teruel", "Alicante") & CoorX < 5e5 ~ 31,
+              .default = 30
+            )
+          )
+        ## convert to spatial
+        ## some provinces have 2 different CRS (they use topographic map sheets)
+        husos <- unique(data_lst$PCDatosMap$Huso)
+        if (length(husos) > 1) {
+          ## they are always 2 different CRS
+          data_huso_1 <- sf::st_as_sf(
+            x      = data_lst$PCDatosMap[data_lst$PCDatosMap$Huso == husos[1], ],
+            coords = c("CoorX", "CoorY"),
+            crs    = paste0("EPSG:230", husos[1])
+          )
+
+          data_huso_2 <- sf::st_as_sf(
+            x      = data_lst$PCDatosMap[data_lst$PCDatosMap$Huso == husos[2], ],
+            coords = c("CoorX", "CoorY"),
+            crs    = paste0("EPSG:230", husos[2])
+          ) |> sf::st_transform(paste0("EPSG:230", husos[1]))
+
+          data_lst$PCDatosMap_sf <- rbind(data_huso_1, data_huso_2)
+
+        } else {
+          ## for only 1 CRS
+          data_lst$PCDatosMap_sf <- sf::st_as_sf(
+            x      = data_lst$PCDatosMap,
+            coords = c("CoorX", "CoorY"),
+            crs    = paste0("EPSG:230", data_lst$PCDatosMap$Huso[1])
+          )
+        }
+
+      }
+
     }
     ## 4.7. Return results
     return(data_lst)
