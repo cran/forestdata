@@ -1,9 +1,9 @@
-7af316a84d56d4105e2abd18734915c1 *DESCRIPTION
+cb76b5d13e825a614a8d4cacf11c1853 *DESCRIPTION
 1b0caca0ddfe451e0721c7f3d56cf532 *NAMESPACE
-80712c5cfa56939932b3b9ff7fbeb65d *NEWS.md
+5e35604acefeaf4941ff2a4705a626bb *NEWS.md
 af919793ddb4248c2fab4ab5882f807d *R/GLAD.R
 b051a50cff58bb84cabcce8b611d22ea *R/allometry.R
-a5c97b9366a09a24552baca7220897c1 *R/canopy-height.R
+b6f8d3bcbf9302257bbe451e222f7819 *R/canopy-height.R
 578e2248491b5651a376708531295ba9 *R/chorological-maps.R
 3ff856c4d77849a3c45e9289ed86eb69 *R/data.R
 ce2bde1faaa3907f55aa126f3a332d22 *R/eutrees4f.R
@@ -15,7 +15,7 @@ e043777e46a94d011dbf42c74c1ce252 *R/forestdata-package.R
 7b8db355b2c4de82b51fb98887d132d7 *R/pathogens.R
 0f4ce2904ffd2d949c03be7161640bb3 *R/sysdata.rda
 65888ee0d05dd466ac46dc8e9bacdb1a *R/utils-not-exported.R
-f7cc612c00c1a2b5ddc460b208319089 *README.md
+e7e71af877820d8721d7ddd1bff94725 *README.md
 b54db8794555342c4feee5fe0b1b8f5b *build/partial.rdb
 2c11f93425b79b2d125cebcf64eafefc *data/metadata_forestdata.rda
 0d1c33836ca4c85a91eab7fb0e85afcc *man/create_mfe50_table.Rd
