@@ -12,6 +12,7 @@ fd_canopy_height(
   layer = "chm",
   crop = FALSE,
   mask = FALSE,
+  merge = FALSE,
   quiet = FALSE
 )
 }
@@ -35,10 +36,13 @@ deviation. If you want both layers, use "\code{all}"}
 
 \item{mask}{when \code{x} is specified, whether to mask the tile(s) to the object}
 
+\item{merge}{if \code{FALSE} (default), it will merge the tiles into one raster.
+If \code{FALSE} a SpatRasterCollection will be returned.}
+
 \item{quiet}{if \code{TRUE}, suppress any message or progress bar}
 }
 \value{
-A \code{SpatRaster}
+A \code{SpatRaster} or \code{SpatRasterCollection}
 }
 \description{
 Download the ETH Global Sentinel-2 10m Canopy Height (2020) or the
@@ -58,7 +62,7 @@ Data may be freely used for research, study, or teaching, but be cited
 appropriately (see references below).
 }
 \examples{
-\donttest{
+\dontrun{
 ## Get 10m resolution CHM
 eth_model <- fd_canopy_height(lon = -7.27, lat = 42.43)
 

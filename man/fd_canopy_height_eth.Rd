@@ -11,6 +11,7 @@ fd_canopy_height_eth(
   layer = "chm",
   crop = FALSE,
   mask = FALSE,
+  merge = FALSE,
   quiet = FALSE
 )
 }
@@ -31,6 +32,9 @@ the standard deviation. If you want both layers, use "\code{all}"}
 
 \item{mask}{when \code{x} is specified, whether to mask the tile(s) to the object}
 
+\item{merge}{if \code{FALSE} (default), it will merge the tiles into one raster.
+If \code{FALSE} a SpatRasterCollection will be returned.}
+
 \item{quiet}{if \code{TRUE}, suppress any message or progress bar}
 }
 \value{
@@ -42,11 +46,6 @@ Download the ETH Global Sentinel-2 10m Canopy Height (2020)
 \details{
 Data may be freely used for research, study, or teaching, but be cited
 appropriately (see references below).
-}
-\examples{
-\donttest{
-canopy_height <- fd_canopy_height_eth(lon = -7.27, lat = 42.43)
-}
 }
 \references{
 Lang, Nico, Walter Jetz, Konrad Schindler, and Jan Dirk

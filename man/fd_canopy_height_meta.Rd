@@ -10,6 +10,7 @@ fd_canopy_height_meta(
   lat = NULL,
   crop = FALSE,
   mask = FALSE,
+  merge = FALSE,
   quiet = FALSE
 )
 }
@@ -26,10 +27,13 @@ specified, this argument is ignored)}
 
 \item{mask}{when \code{x} is specified, whether to mask the tile(s) to the object}
 
+\item{merge}{if \code{FALSE} (default), it will merge the tiles into one raster.
+If \code{FALSE} a SpatRasterCollection will be returned.}
+
 \item{quiet}{if \code{TRUE}, suppress any message or progress bar}
 }
 \value{
-A \code{SpatRaster}
+A \code{SpatRaster} or \code{SpatRasterCollection}
 }
 \description{
 Download the High Resolution 1m Global Canopy Height Map
@@ -37,11 +41,6 @@ Download the High Resolution 1m Global Canopy Height Map
 \details{
 Data may be freely used for research, study, or teaching, but be cited
 appropriately (see references below).
-}
-\examples{
-\donttest{
-canopy_height <- fd_canopy_height_meta(lon = -7.27, lat = 42.43)
-}
 }
 \references{
 \url{https://registry.opendata.aws/dataforgood-fb-forests/}

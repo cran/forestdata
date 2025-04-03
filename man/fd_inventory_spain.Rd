@@ -8,6 +8,7 @@ fd_inventory_spain(
   province,
   ifn = 4,
   database = "field",
+  process_level = 0,
   path_metadata = NULL,
   quiet = FALSE
 )
@@ -19,6 +20,9 @@ Spanish province}
 \item{ifn}{number of Spanish Forest Inventory (from 2 to 4)}
 
 \item{database}{the name of the database (either 'field' or 'gis')}
+
+\item{process_level}{integer. Used when \code{database = 'field'}. Level
+of process of raw data.}
 
 \item{path_metadata}{a character string of length 1 with the path to store the
 metadata of the selected database. The default \code{path_metadata = NULL}
@@ -34,15 +38,16 @@ Download the tables and SIG data from the Spanish Forest Inventory
 }
 \details{
 The IFN2 doesn't have 'gis' data for Asturias, Cantabria and Navarra.
-
-In the future a function to process the data will be added.
 }
 \examples{
-\donttest{
-# Download MFE50 for Canary Islands
-canarias_ifn4_lst <- fd_inventory_spain("Canarias")
-
-cantabria_ifn3_gis_lst <- fd_inventory_spain("cantabria", ifn = 3, database = "gis")
+\dontrun{
+library(odbc)
+if ("Microsoft Access Driver (*.mdb, *.accdb)" \%in\% odbc::odbcListDrivers()$name) {
+  # Download MFE50 for Canary Islands
+  canarias_ifn4_lst <- fd_inventory_spain("Canarias")
+} else {
+  message("Skipping example as <Microsoft Access Driver (*.mdb, *.accdb)> is not available.")
+}
 }
 }
 \references{
